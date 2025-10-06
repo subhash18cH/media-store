@@ -24,6 +24,8 @@ export const uploadMiddleware = upload.single("file");
 export const uploadMedia = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { title, description } = req.body;
+    console.log(req.file);
+
 
     if (!req.file) {
       res.status(400).json({ message: "No file uploaded" });
@@ -55,7 +57,7 @@ export const uploadMedia = async (req: AuthenticatedRequest, res: Response) => {
     });
 
     await media.save();
-    res.status(201).json(media);
+    res.status(200).json(media);
     return;
   } catch (error) {
     console.error(error);
@@ -80,61 +82,3 @@ export const getAllMedia = async (req: AuthenticatedRequest, res: Response): Pro
   }
 };
 
-//GET - /api/media/:id - get media of current user by media id
-export const getMediaById = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-
-    const media = await Media.findById(id);
-
-    if (!media) {
-      res.status(404).json({ error: 'Media file not found' });
-      return;
-    }
-
-    res.status(200).json({
-      message: 'Media file retrieved successfully', data: media,
-    });
-
-  } catch (error) {
-    console.error('Fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch media file' });
-  }
-};
-
-//DELETE - /api/media/:id - delete media of current user by media id
-export const deleteMedia = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const media = await Media.findById(id);
-    if (!media) {
-      res.status(404).json({ error: 'Media file not found' });
-      return;
-    }
-    await cloudinary.uploader.destroy(media.cloudinaryId.toString(), {
-      resource_type: media.type.toString(),
-    });
-
-    await Media.findByIdAndDelete(id);
-    res.status(200).json({ message: 'Media file deleted successfully' });
-  } catch (error: any) {
-    console.error('Delete error:', error);
-    res.status(500).json({ error: 'Failed to delete media file' });
-  }
-};
-
-//GET - /api/media/:id/stream - get streaming media of current user by media id
-export const streamMedia = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const media = await Media.findById(id);
-    if (!media) {
-      res.status(404).json({ error: 'Media file not found' });
-      return;
-    }
-    res.redirect(media.url);
-  } catch (error: any) {
-    console.error('Stream error:', error);
-    res.status(500).json({ error: 'Failed to stream media file', });
-  }
-};
